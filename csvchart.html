@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+ 
+<head>
+  <meta charset="utf-8">
+  <title>ZingGrid Demo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.4.0/papaparse.min.js"></script>
+  <script src="https://cdn.zingchart.com/zingchart.min.js"></script>
+  <style>
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+ 
+    .caption-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      align-items: baseline;
+    }
+ 
+    .chart--container {
+      min-height: 150px;
+      width: 100%;
+      height: 500px;
+    }
+ 
+    .zc-ref {
+      display: none;
+    }
+  </style>
+</head>
+ 
+<body>
+  <h1>Lets Connect a Chart to a CSV on the Client</h1>
+  <p>In this example we will use the <a href="https://www.papaparse.com/docs#json-to-csv">papaparse</a> library.</p>
+ 
+  <!-- CHART CONTAINER -->
+  <div id="myChart" class="chart--container">
+    <a class="zc-ref" href="https://www.zingchart.com/">Powered by ZingChart</a>
+  </div>
+ 
+  <script>
+    ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9", "b55b025e438fa8a98e32482b5f768ff5"]; // window:load event for Javascript to run after HTML
+    // because this Javascript is injected into the document head
+    window.addEventListener('load', () => {
+      // Javascript code to execute after DOM content
+ 
+      // full ZingChart schema can be found here:
+      // https://www.zingchart.com/docs/api/json-configuration/
+      let chartConfig = {
+        type: 'line',
+        globals: {
+          fontSize: '14px'
+        },
+        title: {
+          text: 'Movie Information',
+          fontSize: '24px',
+          adjustLayout: true,
+        },
+        legend: {
+          cursor: 'hand',
+        },
+        plotarea: {
+          margin: 'dynamic'
+        },
+        plot: {
+ 
+        },
+        scaleX: {
+          zooming: true,
+          label: {
+            text: 'years'
+          },
+        },
+        scaleY: {
+          format: '$%v',
+          short: true,
+          label: {
+            text: 'USD'
+          }
+        },
+        crosshairX: {
+          plotLabel: {
+            short: true,
+            decimals: 2,
+          }
+        },
+        noData: {
+          text: 'Fetching data from CSV file...'
+        },
+        series: [{
+            text: 'Budget',
+            // plot values
+            values: [],
+          },
+          {
+            text: 'Domestic Growth',
+            // plot values
+            values: [],
+          },
+          {
+            text: 'Internation Growth',
+            // plot values
+            values: [],
+          }
+        ]
+      };
+ 
+      // render chart with width and height to
+      // fill the parent container CSS dimensions
+      zingchart.render({
+        id: 'myChart',
+        data: chartConfig,
+        height: '100%',
+        width: '100%'
+      });
+      
+      // Parse local CSV file
+      Papa.parse('https://storage.googleapis.com/studio-assets/resources/fruit.csv', {
+        
+        download: true, // url to retrieve CSV file
+        complete: function(results) {
+          console.log(results)
+          console.log("res")
+          let seriesValues = [
+            [], // budget
+            [], // domestic growth
+            [] // international growth
+          ];
+           
+          // if results came in correctly
+          if (results && results.data) {
+            console.log(results);
+            console.log(results.data);
+            // lets push the results into our new array
+            // new format. Row [0] is the column headers
+            for (let i = 1; i < results.data.length; i++) {
+              let budgetValue = Number(results.data[i][2]) || null;
+              let domesticValue = Number(results.data[i][3]) || null;
+              let internationalValue = Number(results.data[i][1]) || null;
+ 
+              // budget data stored in column 6
+              seriesValues[0].push(budgetValue);
+              // domestic growth stored in column 7
+              seriesValues[1].push(domesticValue);
+              // international growth stored in column 8
+              seriesValues[2].push(internationalValue);
+            }
+ 
+            // render data
+            zingchart.exec('myChart', 'setseriesvalues', {
+              values: seriesValues
+            });
+          }
+ 
+        }
+      });
+
+    });
+  </script>
+</body>
+ 
+</html>
